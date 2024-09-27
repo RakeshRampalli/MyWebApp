@@ -6,10 +6,22 @@ pipeline {
         DOCKER_IMAGE = 'rakeshrampalli/testing:latest'
     }
     stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Build Maven Project') {
+            steps {
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build(DOCKER_IMAGE)
+                    docker.build(DOCKER_IMAGE, '-f Dockerfile .')
                 }
             }
         }
