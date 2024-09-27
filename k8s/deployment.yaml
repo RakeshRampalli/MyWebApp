@@ -15,5 +15,7 @@ spec:
       containers:
       - name: testing
         image: rakeshrampalli/testing:latest
+        args:
+        - --insecure-skip-tls-verify
         ports:
         - containerPort: 8080
