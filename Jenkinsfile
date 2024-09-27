@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials' // Your Docker credentials ID
-        K8S_CREDENTIALS_ID = 'k8s-credentials' // Your Kubernetes credentials ID
     }
 
     stages {
@@ -44,10 +43,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
+                    // Start Minikube
+                    sh 'minikube start'
+
                     // Deploy the application to Kubernetes
                     sh '''
-                    kubectl apply -f k8s/deployment.yaml --insecure-skip-tls-verify
-                    kubectl apply -f k8s/service.yaml --insecure-skip-tls-verify
+                    kubectl apply -f k8s/deployment.yaml --validate=false
+                    kubectl apply -f k8s/service.yaml --validate=false
                     '''
                 }
             }
