@@ -1,58 +1,40 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials' // Your Docker credentials ID
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        KUBERNETES_CREDENTIALS_ID = 'k8s-credentials'
+        DOCKER_IMAGE = 'rakeshrampalli/testing:latest'
     }
-
     stages {
-        stage('Clone Repository') {
-            steps {
-                git url: 'https://github.com/rakeshrampalli/MyWebApp.git', branch: 'main'
-            }
-        }
-        
-        stage('Build with Maven') {
-            steps {
-                dir('.') { // Ensure this points to the directory containing pom.xml
-                    sh 'mvn clean package'
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
-                    sh 'docker build -t rakeshrampalli/mywebapp:latest .'
+                    docker.build(DOCKER_IMAGE)
                 }
             }
         }
-
-        stage('Push Docker Image to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Login to Docker Hub
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        sh 'docker push rakeshrampalli/mywebapp:latest'
+                        docker.image(DOCKER_IMAGE).push()
                     }
                 }
             }
         }
-
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Start Minikube
-                    sh 'minikube start'
-
-                    // Deploy the application to Kubernetes
-                    sh '''
-                    kubectl apply -f k8s/deployment.yaml --validate=false
-                    kubectl apply -f k8s/service.yaml --validate=false
-                    '''
+                    withKubeConfig([credentialsId: KUBERNETES_CREDENTIALS_ID]) {
+                        sh 'kubectl apply -f k8s/deployment.yaml'
+                    }
                 }
             }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
