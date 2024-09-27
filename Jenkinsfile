@@ -46,8 +46,8 @@ pipeline {
                 script {
                     // Deploy the application to Kubernetes
                     sh '''
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f k8s/deployment.yaml --insecure-skip-tls-verify
+                    kubectl apply -f k8s/service.yaml --insecure-skip-tls-verify
                     '''
                 }
             }
